@@ -7,70 +7,11 @@
  * http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#assigning-a-media-controller-declaratively
  */
 (function( window, document, mediagroup ) {
-
-	var requestAnimFrame = (function( window ) {
-		var suffix = "equestAnimationFrame",
-			rAF = [ "r", "webkitR", "mozR", "msR", "oR" ].filter(function( val ) {
-				return val + suffix in window;
-			})[ 0 ] + suffix;
-
-		return window[ rAF ]	|| function( callback, element ) {
-			window.setTimeout(function() {
-				callback( +new Date() );
-			}, 1000 / 60);
-		};
-	})( window );
-
 	// Unary Array.from()
 	// https://gist.github.com/1074126
 	Array.from = function( arrayish ) {
 		return [].slice.call( arrayish );
 	};
-
-	function mediaGroupSync( controller, slaves ) {
-
-		if ( slaves.length ) {
-			slaves.forEach(function( slave ) {
-				if ( slave.currentTime !== controller.currentTime ) {
-					slave.currentTime = controller.currentTime;
-				}
-			});
-		}
-
-		requestAnimFrame(function() {
-			mediaGroupSync( controller, slaves );
-		});
-	}
-
-	function mediaGroupListeners( controller, slaves, callback ) {
-
-		// var events = [ "play", "pause" ];
-		//
-		// // Dispatch events across all slaves elements
-		// events.forEach(function( type, i ) {
-		//
-		// // Define listeners for parent controller element
-		// controller.addEventListener( type, function() {
-		//
-		//   var evt = document.createEvent( "Events" );
-		//
-		//   evt.initEvent(
-		//     type, true, true, window
-		//   );
-		//
-		//     // Delegate events to slaves
-		//   slaves.forEach(function( slave ) {
-		//     slave.dispatchEvent( evt );
-		//   });
-		// });
-		//
-		// if ( (i + 1) === events.length ) {
-		//     callback();
-		// }
-		// });
-
-		callback();
-	}
 
 	function mediaGroup( group, elements ) {
 
@@ -101,12 +42,44 @@
 				elements.forEach(function( elem ) {
 					elem.removeEventListener( "canplay", canPlay, false );
 				});
-
-				mediaGroupListeners( controller, elements, function() {
-					mediaGroupSync( controller, slaves );
-				});
 			}
 		}
+
+		// MediaController shim
+		var mediaController = new Object();
+		mediaController.play = function() {
+			controller.play();
+			slaves.forEach(function( slave ) {
+				slave.play();
+			});
+		};
+		mediaController.pause = function() {
+			controller.pause();
+			slaves.forEach(function( slave ) {
+				slave.pause();
+				// We cannot synchronize the videos here because at least in
+				// Firefox, controller.currentTime is incorrect after calling
+				// pause(). The workaround is to listen on the pause event, see below.
+				//slave.currentTime = controller.currentTime;
+			});
+		};
+		mediaController.unpause = mediaController.play;
+		Object.defineProperty(mediaController, "currentTime", {
+			get: function() { return controller.currentTime; },
+			set: function( time ) {
+				controller.currentTime = time;
+				slaves.forEach(function( slave ) {
+					slave.currentTime = time;
+				});
+			}
+		});
+		Object.defineProperty(mediaController, "played", {
+			get: function() { return controller.played; }
+		});
+		Object.defineProperty(mediaController, "paused", {
+			get: function() { return controller.paused; }
+		});
+
 
 		// Iterate all elements in mediagroup set
 		// Add `canplay` event listener, this ensures that setting currentTime
@@ -117,8 +90,21 @@
 			// Set the actual element IDL property `mediaGroup`
 			elem.mediaGroup = elem.getAttribute( mediagroup );
 
+			elem.controller = mediaController;
+
 			elem.addEventListener( "canplay", canPlay, false );
 		});
+
+		controller.addEventListener( "pause", function(e) {
+			if (controller.duration == controller.currentTime ) {
+				return;
+			}
+			slaves.forEach(function( slave ) {
+				// Keep the videos synchronized. At this point,
+				// controller.currentTime should be correct.
+				slave.currentTime = controller.currentTime;
+			});
+		}, false);
 	}
 
 	function mediaGroupSetup( selector ) {
