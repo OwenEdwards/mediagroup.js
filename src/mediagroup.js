@@ -6,7 +6,7 @@
  *
  * http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#assigning-a-media-controller-declaratively
  */
-(function( window, document, mediagroup ) {
+mediaGroupInit = (function( window, document, mediagroup ) {
 	// Unary Array.from()
 	// https://gist.github.com/1074126
 	Array.from = function( arrayish ) {
@@ -182,6 +182,14 @@
 		});
 	});
 
+	var initDone = false;
+	function mediaGroupInit() {
+		if ( !initDone ) {
+			mediaGroupSetup();
+			initDone = true;
+		}
+	}
+
 	// Autocreate mediagroup sets when DOM is ready
 	document.addEventListener( "DOMContentLoaded", function() {
 
@@ -191,9 +199,11 @@
 			return;
 		}
 
-		mediaGroupSetup();
+		mediaGroupInit();
 
 	}, false );
+
+	return mediaGroupInit;
 
 	// TODO: How to ensure that new nodes with mediagroup attrs are recognized
 
