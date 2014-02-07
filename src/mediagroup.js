@@ -73,6 +73,15 @@
 				});
 			}
 		});
+		Object.defineProperty(mediaController, "muted", {
+			get: function() { return controller.muted; },
+			set: function( mute ) {
+				controller.muted = mute;
+				slaves.forEach(function( slave ) {
+					slave.muted = mute;
+				});
+			}
+		});
 		Object.defineProperty(mediaController, "played", {
 			get: function() { return controller.played; }
 		});
