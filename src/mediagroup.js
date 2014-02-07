@@ -73,12 +73,30 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 				});
 			}
 		});
+		Object.defineProperty(mediaController, "defaultPlaybackRate", {
+			get: function() { return controller.defaultPlaybackRate; },
+			set: function( rate ) {
+				controller.defaultPlaybackRate = rate;
+				slaves.forEach(function( slave ) {
+					slave.defaultPlaybackRate = rate;
+				});
+			}
+		});
 		Object.defineProperty(mediaController, "muted", {
 			get: function() { return controller.muted; },
 			set: function( mute ) {
 				controller.muted = mute;
 				slaves.forEach(function( slave ) {
 					slave.muted = mute;
+				});
+			}
+		});
+		Object.defineProperty(mediaController, "playbackRate", {
+			get: function() { return controller.playbackRate; },
+			set: function( rate ) {
+				controller.playbackRate = rate;
+				slaves.forEach(function( slave ) {
+					slave.playbackRate = rate;
 				});
 			}
 		});
