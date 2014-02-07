@@ -82,6 +82,9 @@
 				});
 			}
 		});
+		Object.defineProperty(mediaController, "duration", {
+			get: function() { return controller.duration; }
+		});
 		Object.defineProperty(mediaController, "played", {
 			get: function() { return controller.played; }
 		});
