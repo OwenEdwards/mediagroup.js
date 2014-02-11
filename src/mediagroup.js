@@ -22,6 +22,7 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 		controller = elements.filter(function( elem ) {
 			return !!elem.controls || elem.getAttribute("controls", true);
 		})[ 0 ];
+        controller = controller || elements[0];
 
 		// Filter nodelist for all elements that will
 		// be controlled by the	controller element
