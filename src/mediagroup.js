@@ -119,9 +119,9 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 		elements.forEach(function( elem ) {
 
 			// Set the actual element IDL property `mediaGroup`
-			elem.mediaGroup = elem.getAttribute( mediagroup );
+			elem.mediaGroupShim = elem.getAttribute( mediagroup );
 
-			elem.controller = mediaController;
+			elem.controllerShim = mediaController;
 
 			elem.addEventListener( "canplay", canPlay, false );
 		});
@@ -152,7 +152,7 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 
 			// Allow only if no `mediaGroup` property exists
 			elements = elements.filter(function( elem ) {
-				return !elem.mediaGroup;
+				return !elem.mediaGroupShim;
 			});
 
 			// Filter for groupnames
@@ -191,7 +191,7 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 				return element.nodeName === val;
 			});
 
-			if ( valid && !element.mediaGroup &&
+			if ( valid && !element.mediaGroupShim &&
 					(element.controls || element.getAttribute("controls") === "true") ) {
 
 				window.setTimeout(function() {
@@ -226,4 +226,4 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 
 	// TODO: How to ensure that new nodes with mediagroup attrs are recognized
 
-})( this, this.document, "mediagroup" );
+})( this, this.document, "data-mediagroup" );
