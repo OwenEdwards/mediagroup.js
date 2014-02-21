@@ -111,6 +111,17 @@ mediaGroupSetup = (function( window, document, mediagroup ) {
 			get: function() { return controller.paused; }
 		});
 
+        // HACK: A proper implementation would return "ended" when appropriate too
+		Object.defineProperty(mediaController, "playbackState", {
+			get: function() {
+                if (controller.paused) {
+                    return "waiting";
+                } else {
+                    return "playing";
+                }
+            },
+		});
+
 
 		// Iterate all elements in mediagroup set
 		// Add `canplay` event listener, this ensures that setting currentTime
