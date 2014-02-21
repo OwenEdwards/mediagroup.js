@@ -6,7 +6,7 @@
  *
  * http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#assigning-a-media-controller-declaratively
  */
-mediaGroupInit = (function( window, document, mediagroup ) {
+mediaGroupSetup = (function( window, document, mediagroup ) {
 	// Unary Array.from()
 	// https://gist.github.com/1074126
 	Array.from = function( arrayish ) {
@@ -138,14 +138,14 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 		}, false);
 	}
 
-	function mediaGroupSetup( selector ) {
+	function mediaGroupSetup( manualNodeList ) {
 		// Declare program references
 		// nodelist: a NodeList of all elements with `mediagroup` attributes
 		// elements: `nodelist` as a real Array
 		// filtereds: object whose properties are the value of a `mediagroup` attribute,
 		//            with values that are arrays of corresponding elements
 		// mediagroups: unique array of each mediagroup name
-		var nodelist = document.querySelectorAll( selector || "[" + mediagroup + "]" ),
+		var nodelist = manualNodeList || document.querySelectorAll( "[" + mediagroup + "]" ),
 			elements = Array.from( nodelist ),
 			filtereds = {},
 			mediagroups;
@@ -175,54 +175,7 @@ mediaGroupInit = (function( window, document, mediagroup ) {
 		});
 	}
 
-	// Listen for mutation events
-	[ "DOMNodeInserted", "DOMAttrModified" ].forEach(function( mutation ) {
-
-		document.addEventListener( mutation, function( event ) {
-
-			// Feature detect for mediagroup support.
-			// If Host has support, return and do nothing.
-			if ( "mediaGroup" in document.createElement("video") ) {
-				return;
-			}
-
-			var element = event.target,
-			valid = [ "AUDIO", "VIDEO" ].some(function( val ) {
-				return element.nodeName === val;
-			});
-
-			if ( valid && !element.mediaGroupShim &&
-					(element.controls || element.getAttribute("controls") === "true") ) {
-
-				window.setTimeout(function() {
-					mediaGroupSetup( "[" + mediagroup + "='" + element.getAttribute( mediagroup ) + "']" );
-				}, 100 );
-			}
-		});
-	});
-
-	var initDone = false;
-	function mediaGroupInit() {
-		if ( !initDone ) {
-			mediaGroupSetup();
-			initDone = true;
-		}
-	}
-
-	// Autocreate mediagroup sets when DOM is ready
-	document.addEventListener( "DOMContentLoaded", function() {
-
-		// Feature detect for mediagroup support.
-		// If Host has support, return and do nothing.
-		if ( "mediaGroup" in document.createElement("video") ) {
-			return;
-		}
-
-		mediaGroupInit();
-
-	}, false );
-
-	return mediaGroupInit;
+	return mediaGroupSetup;
 
 	// TODO: How to ensure that new nodes with mediagroup attrs are recognized
 
